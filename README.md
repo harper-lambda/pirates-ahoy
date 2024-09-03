@@ -2,6 +2,10 @@
 
 PiratesAhoy is a Discord bot that brings the joy of music to your server! With easy-to-use commands, you can play, queue, and manage songs from YouTube directly in your voice channels.
 
+It started out of a frustration with the offical offerings for music streaming on Discord between friends and we decided, heck with it, let's make it Open Source!
+
+10/10 would love feedback and any contributions for things you would like to see implemented!
+
 ## Features
 
 - Play music from YouTube links or search queries
