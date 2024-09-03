@@ -18,15 +18,30 @@ class Music(commands.Cog):
         self.current_song = None
         self.voice_client = None
         self.last_search_user = None
+        self.sent_messages = []
+
+    async def send_message(self, ctx, content, **kwargs):
+        message = await ctx.send(f"{content}", **kwargs, silent=True)
+        self.sent_messages.append(message)
+        asyncio.create_task(self.delete_message_after_delay(message))
+        
+    async def delete_message_after_delay(self, message, delay=60):
+        await asyncio.sleep(delay)
+        try:
+            await message.delete()
+        except discord.errors.NotFound:
+            pass
+        if message in self.sent_messages:
+            self.sent_messages.remove(message)
 
     @commands.command()
     async def play(self, ctx, *, query=None):
         if not query:
-            await ctx.send("Please provide a search query or YouTube URL. Usage: `!play <query or URL>`")
+            await self.send_message(ctx,"Please provide a search query or YouTube URL. Usage: `!play <query or URL>`")
             return
 
         if not ctx.author.voice:
-            await ctx.send("You need to be in a voice channel to use this command.")
+            await self.send_message(ctx,"You need to be in a voice channel to use this command.")
             return
 
         try:
@@ -36,10 +51,10 @@ class Music(commands.Cog):
                 source = discord.FFmpegPCMAudio('bluetooth_pairing.wav')
                 self.voice_client.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(self.play_next(ctx), self.bot.loop))
         except discord.errors.ClientException:
-            await ctx.send("I'm already connected to a voice channel.")
+            await self.send_message(ctx,"I'm already connected to a voice channel.")
             return
         except Exception as e:
-            await ctx.send(f"An error occurred while connecting to the voice channel: {str(e)}")
+            await self.send_message(ctx,f"An error occurred while connecting to the voice channel: {str(e)}")
             return
 
         if query.startswith('https://www.youtube.com/watch?v='):
@@ -49,7 +64,7 @@ class Music(commands.Cog):
             # It's a search query
             results = await self.search_videos(query)
             if not results:
-                await ctx.send("No results found for your search query.")
+                await self.send_message(ctx,"No results found for your search query.")
                 return
             
             await self.send_search_results(ctx, results)
@@ -78,7 +93,7 @@ class Music(commands.Cog):
             view.add_item(button)
 
         # Send the embed with the view
-        message = await ctx.send(embed=embed, view=view)
+        message = await ctx.send(embed=embed, view=view, silent=True)
 
         async def on_timeout():
             try:
@@ -103,20 +118,20 @@ class Music(commands.Cog):
 
     async def add_to_queue(self, ctx, url, title=None):
         if title:
-            await ctx.send(f"Adding **{title}** to queue. Please wait while I download the audio...")
+            await self.send_message(ctx,f"Adding **{title}** to queue. Please wait while I download the audio...")
         else:
-            await ctx.send(f"Adding song to queue. Please wait while I download the audio...")
+            await self.send_message(ctx,f"Adding song to queue. Please wait while I download the audio...")
         try:
             song_info = await self.download_audio(url)
             if song_info:
                 self.queue.append(song_info)
-                await ctx.send(f"Successfully added to queue: **{song_info['title']}**")
+                await self.send_message(ctx,f"Successfully added to queue: **{song_info['title']}**")
                 if not self.current_song:
                     await self.play_next(ctx)
             else:
-                await ctx.send("Failed to download the audio. Please try again with a different link or search query.")
+                await self.send_message(ctx,"Failed to download the audio. Please try again with a different link or search query.")
         except Exception as e:
-            await ctx.send(f"An error occurred while adding the song to the queue: {str(e)}")
+            await self.send_message(ctx,f"An error occurred while adding the song to the queue: {str(e)}")
 
     async def play_next(self, ctx):
         if self.queue:
@@ -124,40 +139,40 @@ class Music(commands.Cog):
             try:
                 source = discord.FFmpegPCMAudio(self.current_song['filename'])
                 self.voice_client.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(self.play_next(ctx), self.bot.loop))
-                await ctx.send(f"Now playing: **{self.current_song['title']}**")
+                await self.send_message(ctx,f"Now playing: **{self.current_song['title']}**")
             except Exception as e:
-                await ctx.send(f"An error occurred while playing the song: {str(e)}")
+                await self.send_message(ctx,f"An error occurred while playing the song: {str(e)}")
                 await self.play_next(ctx)
         else:
             self.current_song = None
-            await ctx.send("Queue is empty. Use `!play` to add more songs!")
+            await self.send_message(ctx,"Queue is empty. Use `!play` to add more songs!")
 
     @commands.command()
     async def stop(self, ctx):
         if self.voice_client and self.voice_client.is_playing():
             self.voice_client.stop()
-            await ctx.send("Playback stopped.")
+            await self.send_message(ctx,"Playback stopped.")
         else:
-            await ctx.send("Nothing is currently playing.")
+            await self.send_message(ctx,"Nothing is currently playing.")
 
     @commands.command()
     async def skip(self, ctx):
         if self.voice_client and self.voice_client.is_playing():
             self.voice_client.stop()
-            await ctx.send("Skipped the current song.")
+            await self.send_message(ctx,"Skipped the current song.")
             await self.play_next(ctx)
         else:
-            await ctx.send("Nothing is currently playing.")
+            await self.send_message(ctx,"Nothing is currently playing.")
 
     @commands.command()
     async def queue(self, ctx):
         if not self.queue:
-            await ctx.send("The queue is empty. Use `!play` to add songs!")
+            await self.send_message(ctx,"The queue is empty. Use `!play` to add songs!")
         else:
             queue_list = "Current queue:\n"
             for i, song in enumerate(self.queue, 1):
                 queue_list += f"{i}. {song['title']}\n"
-            await ctx.send(queue_list)
+            await self.send_message(ctx,queue_list)
 
     async def search_videos(self, query, max_results=5):
         try:
@@ -209,13 +224,26 @@ async def on_ready():
     await setup(bot)
 
 @bot.event
+async def on_message(message):
+    if message.author != bot.user and message.content.startswith(bot.command_prefix):
+        asyncio.create_task(delete_message_after_delay(message))
+    await bot.process_commands(message)
+
+async def delete_message_after_delay(message, delay=60):
+    await asyncio.sleep(delay)
+    try:
+        await message.delete()
+    except discord.errors.NotFound:
+        pass
+
+@bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
-        await ctx.send("Unknown command. Use `!help` to see available commands.")
+        await ctx.send("Unknown command. Use `!help` to see available commands.", silent=True)
     elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send(f"Missing required argument: {error.param.name}")
+        await ctx.send(f"Missing required argument: {error.param.name}", silent=True)
     else:
-        await ctx.send(f"An error occurred: {str(error)}")
+        await ctx.send(f"An error occurred: {str(error)}", silent=True)
 
 def load_credentials():
     with open('creds.json') as f:
