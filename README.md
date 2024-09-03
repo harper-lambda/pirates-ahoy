@@ -89,7 +89,7 @@ PiratesAhoy is a Discord bot that brings the joy of music to your server! With e
 3. Navigate to the "Bot" tab and click "Add Bot".
 4. Under the "Token" section, click "Copy" to copy your bot token. **Keep this token secret!**
 
-# Update the `creds.json` file in the root directory with your Discord bot token
+### Update the `creds.json` file in the root directory with your Discord bot token ###
 
 5. In the Discord Developer Portal, go to the "OAuth2" tab.
 6. In the "Scopes" section, select "bot".
