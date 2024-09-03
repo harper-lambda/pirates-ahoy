@@ -1,0 +1,27 @@
+# Ignore the downloads folder
+downloads/
+
+# Ignore Python virtual environment
+.venv/
+
+# Ignore credentials file
+creds.json
+
+# Python-related ignores
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS-related ignores
+.DS_Store
+Thumbs.db
+
+# IDE-related ignores (uncomment if needed)
+# .vscode/
+# .idea/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
