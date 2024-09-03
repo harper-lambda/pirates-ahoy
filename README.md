@@ -84,11 +84,20 @@ PiratesAhoy is a Discord bot that brings the joy of music to your server! With e
 
 ## Usage
 
-1. Invite the bot to your Discord server 
-`https://discord.com/oauth2/authorize?client_id=1279990574425968642&permissions=8&integration_type=0&scope=bot`
-2. Join a voice channel in your server.
-3. Use the `!play` command followed by a YouTube URL or search query to start playing music.
-4. Enjoy your tunes!
+1. Go to the [Discord Developer Portal](https://discord.com/developers/applications).
+2. Click on "New Application" and give your bot a name.
+3. Navigate to the "Bot" tab and click "Add Bot".
+4. Under the "Token" section, click "Copy" to copy your bot token. **Keep this token secret!**
+
+## Update the `creds.json` file in the root directory with your Discord bot token
+
+5. In the Discord Developer Portal, go to the "OAuth2" tab.
+6. In the "Scopes" section, select "bot".
+7. In the "Bot Permissions" section, select the necessary permissions (at minimum: "Send Messages", "Connect", and "Speak").
+8. Copy the generated URL and open it in a new browser tab to invite the bot to your server.
+9. Join a voice channel.
+10. Use the `!play` command followed by a YouTube URL or search query to start playing music.
+11. Use other commands like `!stop`, `!skip`, and `!queue` to control playback and manage the queue.
 
 ## Contributing
 
