@@ -9,6 +9,8 @@ PiratesAhoy is a Discord bot that brings the joy of music to your server! With e
 - Interactive song selection from search results
 - Basic playback controls (stop, skip)
 - Queue management and display
+- Auto-Deletion of Bot-User interactions after 60 seconds to keep channels tidy.
+- All messages are sent silently to not spam notifications.
 
 ## Commands
 
